@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Expense Tracker — AI Financial Insights</title>
+  <meta name="description" content="AI-powered expense tracker with natural language entry, monthly narrative reports, and responsive analytics dashboard.">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Google Fonts & Custom CSS -->
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="pb-24 md:pb-10 min-h-screen text-slate-100">
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- Header / Navigation Bar -->
+  <header class="sticky top-0 z-40 backdrop-blur-xl bg-slate-950/80 border-b border-white/10 px-4 py-3.5">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl gradient-btn flex items-center justify-center text-xl shadow-lg shadow-purple-500/20">
+          💎
+        </div>
+        <div>
+          <h1 class="font-extrabold text-lg tracking-tight gradient-text">SmartSpend AI</h1>
+          <p class="text-[11px] text-gray-400 font-medium">Personal Finance Assistant</p>
+        </div>
+      </div>
+
+      <!-- Desktop Navigation Tabs -->
+      <nav class="hidden md:flex items-center gap-1 bg-slate-900/60 p-1.5 rounded-xl border border-white/10">
+        <button data-view-target="dashboard" class="nav-link active px-4 py-2 rounded-lg text-sm transition flex items-center gap-2">
+          <span>📊</span> Dashboard
+        </button>
+        <button data-view-target="quick-add" class="nav-link px-4 py-2 rounded-lg text-sm transition flex items-center gap-2">
+          <span>✨</span> Quick Add AI
+        </button>
+        <button data-view-target="report" class="nav-link px-4 py-2 rounded-lg text-sm transition flex items-center gap-2">
+          <span>🧠</span> AI Report
+        </button>
+        <button data-view-target="history" class="nav-link px-4 py-2 rounded-lg text-sm transition flex items-center gap-2">
+          <span>📜</span> History
+        </button>
+        <button data-view-target="categories" class="nav-link px-4 py-2 rounded-lg text-sm transition flex items-center gap-2">
+          <span>🏷️</span> Categories
+        </button>
+      </nav>
+
+      <!-- Month Selector & AI Status Indicator -->
+      <div class="flex items-center gap-3">
+        <div class="relative">
+          <input type="month" id="month-selector" class="glass-input text-xs font-semibold px-3 py-1.5 rounded-lg cursor-pointer text-gray-200">
+        </div>
+        <div class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] text-emerald-400 font-medium pulse-ai">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+          AI Ready
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Main View Container -->
+  <main class="max-w-6xl mx-auto px-4 pt-6">
+
+    <!-- 1. DASHBOARD VIEW -->
+    <div id="view-dashboard" class="view-container space-y-6">
+      
+      <!-- Metrics Overview Row -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <!-- Total Spend Card -->
+        <div class="glass-panel p-5 relative overflow-hidden">
+          <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-purple-500/10 rounded-full blur-xl pointer-events-none"></div>
+          <span class="text-xs font-semibold uppercase tracking-wider text-gray-400">Total Monthly Spend</span>
+          <div class="mt-2 flex items-baseline justify-between">
+            <h2 id="dash-total-amount" class="text-3xl font-extrabold text-white">₹0.00</h2>
+            <span id="dash-pct-change" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-500/20 text-gray-400">0%</span>
+          </div>
+          <p id="dash-expense-count" class="text-xs text-gray-400 mt-1">0 entries</p>
+        </div>
+
+        <!-- Top Category Card -->
+        <div class="glass-panel p-5 relative overflow-hidden">
+          <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-indigo-500/10 rounded-full blur-xl pointer-events-none"></div>
+          <span class="text-xs font-semibold uppercase tracking-wider text-gray-400">Highest Category</span>
+          <h3 id="dash-top-category" class="text-lg font-bold text-gray-100 mt-2 truncate">--</h3>
+          <p class="text-xs text-gray-400 mt-1">Based on current month data</p>
+        </div>
+
+        <!-- Quick AI Add Card Callout -->
+        <div class="glass-panel p-5 relative overflow-hidden flex flex-col justify-between border-purple-500/30">
+          <div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-purple-400 flex items-center gap-1">
+              <span>✨</span> Smart AI Entry
+            </span>
+            <p class="text-xs text-gray-300 mt-1.5">"spent 450 on swiggy yesterday"</p>
+          </div>
+          <button data-view-target="quick-add" class="mt-3 text-xs font-semibold px-3 py-1.5 rounded-lg gradient-btn text-white w-fit">
+            Open AI Parser →
+          </button>
+        </div>
+
+        <!-- Monthly AI Report Shortcut -->
+        <div class="glass-panel p-5 relative overflow-hidden flex flex-col justify-between border-cyan-500/30">
+          <div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-cyan-400 flex items-center gap-1">
+              <span>🧠</span> Monthly Insights
+            </span>
+            <p class="text-xs text-gray-300 mt-1.5">View AI narrative spending report & advice.</p>
+          </div>
+          <button data-view-target="report" class="mt-3 text-xs font-semibold px-3 py-1.5 rounded-lg bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-500/40 text-cyan-200 transition w-fit">
+            View Report →
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Analytics Charts Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- Category Breakdown Donut Chart -->
+        <div class="glass-panel p-5 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-base text-gray-100 flex items-center gap-2">
+              <span>🍕</span> Category Spending Breakdown
+            </h3>
+            <span class="text-xs text-gray-400">Share %</span>
+          </div>
+          <div class="h-64 relative">
+            <canvas id="donut-chart-canvas"></canvas>
+          </div>
+        </div>
+
+        <!-- Monthly Comparative Spending Bar Chart -->
+        <div class="glass-panel p-5 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-base text-gray-100 flex items-center gap-2">
+              <span>📈</span> Month-over-Month Comparison
+            </h3>
+            <span class="text-xs text-gray-400">Total Spend</span>
+          </div>
+          <div class="h-64 relative">
+            <canvas id="bar-chart-canvas"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Top Expense Categories Progress List -->
+      <div class="glass-panel p-5">
+        <h3 class="font-bold text-base text-gray-100 mb-4 flex items-center gap-2">
+          <span>🔥</span> Top Spending Categories
+        </h3>
+        <div id="top-categories-list" class="space-y-3">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 2. QUICK ADD / AI PARSER VIEW -->
+    <div id="view-quick-add" class="view-container hidden space-y-6 max-w-2xl mx-auto">
+      
+      <!-- AI Natural Language Input Card -->
+      <div class="glass-panel p-6 border-purple-500/40 glow-purple">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-2xl">✨</span>
+          <h3 class="text-lg font-extrabold gradient-text">Smart Natural Language AI Entry</h3>
+        </div>
+        <p class="text-xs text-gray-400 mb-4">
+          Type or speak naturally like: <span class="text-purple-300 italic">"spent 450 on swiggy yesterday"</span> or <span class="text-purple-300 italic">"paid 1200 petrol fuel 2 days ago"</span>. AI will automatically extract amount, category, and date.
+        </p>
+
+        <form id="ai-parse-form" class="space-y-4">
+          <div>
+            <textarea id="ai-text-input" rows="3" class="w-full glass-input p-3.5 rounded-xl text-sm placeholder-gray-500 resize-none" placeholder="e.g. Swiggy order 350 for dinner last night..."></textarea>
+          </div>
+          <button type="submit" id="ai-parse-btn" class="w-full py-3 rounded-xl gradient-btn font-bold text-sm text-white flex items-center justify-center gap-2">
+            <span>✨</span> Auto-Parse with AI
+          </button>
+        </form>
+      </div>
+
+      <!-- Parsed Confirmation Modal / Preview Card -->
+      <div id="ai-parsed-preview-modal" class="glass-panel p-6 border-emerald-500/40 hidden space-y-4 glow-emerald">
+        <div class="flex items-center justify-between">
+          <h4 class="font-bold text-emerald-400 text-sm flex items-center gap-1.5">
+            <span>✅</span> Verify Parsed Expense
+          </h4>
+          <span id="parsed-confidence-badge" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+            ✨ AI Parsed
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1">Amount (₹)</label>
+            <input type="number" step="0.01" id="confirm-amount-input" class="w-full glass-input p-2.5 rounded-lg text-sm font-bold text-white">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1">Category</label>
+            <select id="confirm-category-select" class="w-full glass-input p-2.5 rounded-lg text-sm text-gray-200">
+              <!-- Dynamically filled -->
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1">Description</label>
+            <input type="text" id="confirm-desc-input" class="w-full glass-input p-2.5 rounded-lg text-sm text-gray-200">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1">Date</label>
+            <input type="date" id="confirm-date-input" class="w-full glass-input p-2.5 rounded-lg text-sm text-gray-200">
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3 pt-2">
+          <button type="button" id="confirm-parsed-btn" class="flex-1 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 font-bold text-xs text-white transition">
+            Save Expense
+          </button>
+          <button type="button" onclick="document.getElementById('ai-parsed-preview-modal').classList.add('hidden')" class="px-4 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-gray-400 transition">
+            Cancel
+          </button>
+        </div>
+      </div>
+
+      <!-- Accordion Manual Entry Fallback -->
+      <details class="glass-panel p-5 group">
+        <summary class="font-bold text-sm text-gray-300 cursor-pointer flex items-center justify-between list-none">
+          <span class="flex items-center gap-2"><span>📝</span> Manual Entry Form</span>
+          <span class="text-xs text-purple-400 group-open:rotate-180 transition-transform">▼</span>
+        </summary>
+        
+        <form id="manual-expense-form" class="mt-4 space-y-4 pt-4 border-t border-white/10">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-gray-400 mb-1">Amount (₹)</label>
+              <input type="number" step="0.01" id="manual-amount" required placeholder="0.00" class="w-full glass-input p-2.5 rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-400 mb-1">Category</label>
+              <select id="manual-category-select" required class="w-full glass-input p-2.5 rounded-lg text-sm">
+                <!-- Dynamically filled -->
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-400 mb-1">Description</label>
+              <input type="text" id="manual-desc" placeholder="e.g. Coffee & Muffins" class="w-full glass-input p-2.5 rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-400 mb-1">Date</label>
+              <input type="date" id="manual-date" class="w-full glass-input p-2.5 rounded-lg text-sm">
+            </div>
+          </div>
+          <button type="submit" class="w-full py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 font-bold text-xs text-white transition">
+            Add Expense Manually
+          </button>
+        </form>
+      </details>
+
+    </div>
+
+    <!-- 3. MONTHLY AI REPORT VIEW -->
+    <div id="view-report" class="view-container hidden space-y-6">
+      
+      <div class="glass-panel p-6 border-cyan-500/30">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4 mb-4">
+          <div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-cyan-400">AI Narrative Insights</span>
+            <h2 id="report-month-title" class="text-xl font-extrabold text-white mt-1">Monthly Report</h2>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="text-right">
+              <span class="text-xs text-gray-400 block">Total Spend</span>
+              <span id="report-total-spend" class="text-lg font-bold text-cyan-300">₹0.00</span>
+            </div>
+            <button id="regen-report-btn" class="px-3 py-2 rounded-lg bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-500/40 text-xs font-semibold text-cyan-200 transition flex items-center gap-1.5">
+              <span>🔄</span> Regenerate
+            </button>
+          </div>
+        </div>
+
+        <!-- AI Narrative Body -->
+        <div id="report-ai-content" class="text-gray-300 text-sm leading-relaxed p-4 rounded-xl bg-slate-900/60 border border-white/5">
+          <p class="text-gray-400 italic">Loading monthly financial analysis...</p>
+        </div>
+      </div>
+
+      <!-- Category Breakdown Summary Table -->
+      <div class="glass-panel p-6">
+        <h3 class="font-bold text-base text-gray-100 mb-4 flex items-center gap-2">
+          <span>📑</span> Category Spend Details
+        </h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-gray-800 text-xs text-gray-400 uppercase tracking-wider">
+                <th class="py-3 px-4">Category</th>
+                <th class="py-3 px-4 text-right">Amount (₹)</th>
+                <th class="py-3 px-4 text-right">Share (%)</th>
+              </tr>
+            </thead>
+            <tbody id="report-table-body">
+              <!-- Dynamically filled -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 4. HISTORY VIEW -->
+    <div id="view-history" class="view-container hidden space-y-6">
+      
+      <!-- Search & Filters Bar -->
+      <div class="glass-panel p-4 flex flex-col sm:flex-row gap-3">
+        <div class="flex-1 relative">
+          <input type="text" id="history-search" placeholder="Search expenses by description..." class="w-full glass-input pl-9 pr-3 py-2 rounded-xl text-sm">
+          <span class="absolute left-3 top-2.5 text-gray-400 text-sm">🔍</span>
+        </div>
+        <select id="history-cat-filter" class="glass-input px-3 py-2 rounded-xl text-sm">
+          <option value="">All Categories</option>
+        </select>
+      </div>
+
+      <!-- Expenses Timeline Feed -->
+      <div id="history-list-container" class="space-y-3">
+        <!-- Rendered dynamically -->
+      </div>
+
+    </div>
+
+    <!-- 5. CATEGORIES MANAGER VIEW -->
+    <div id="view-categories" class="view-container hidden space-y-6">
+      
+      <!-- Add Custom Category Card -->
+      <div class="glass-panel p-5 max-w-lg">
+        <h3 class="font-bold text-base text-gray-100 mb-3 flex items-center gap-2">
+          <span>➕</span> Add Custom Category
+        </h3>
+        <form id="add-category-form" class="flex gap-3">
+          <input type="text" id="cat-icon-input" placeholder="Emoji (e.g. 🍕)" class="w-20 glass-input p-2.5 rounded-lg text-sm text-center">
+          <input type="text" id="cat-name-input" required placeholder="Category Name" class="flex-1 glass-input p-2.5 rounded-lg text-sm">
+          <button type="submit" class="px-4 py-2.5 rounded-lg gradient-btn font-bold text-xs text-white">
+            Add
+          </button>
+        </form>
+      </div>
+
+      <!-- Categories Grid -->
+      <div class="glass-panel p-6">
+        <h3 class="font-bold text-base text-gray-100 mb-4 flex items-center gap-2">
+          <span>🏷️</span> Active Expense Categories
+        </h3>
+        <div id="categories-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Mobile Bottom Navigation Bar -->
+  <nav class="bottom-nav md:hidden fixed bottom-0 left-0 right-0 z-50 flex justify-around items-center py-2.5 px-2">
+    <button data-view-target="dashboard" class="nav-link active flex flex-col items-center gap-1 text-[10px]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 stroke-current" fill="none" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+      </svg>
+      Dashboard
+    </button>
+    <button data-view-target="quick-add" class="nav-link flex flex-col items-center gap-1 text-[10px]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 stroke-current" fill="none" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      Quick Add
+    </button>
+    <button data-view-target="report" class="nav-link flex flex-col items-center gap-1 text-[10px]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 stroke-current" fill="none" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+      </svg>
+      AI Report
+    </button>
+    <button data-view-target="history" class="nav-link flex flex-col items-center gap-1 text-[10px]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 stroke-current" fill="none" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      History
+    </button>
+    <button data-view-target="categories" class="nav-link flex flex-col items-center gap-1 text-[10px]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 stroke-current" fill="none" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 11h.01M7 15h.01M11 7h.01M11 11h.01M11 15h.01M15 7h.01M15 11h.01M15 15h.01" />
+      </svg>
+      Categories
+    </button>
+  </nav>
+
+  <!-- JS Dependencies -->
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/charts.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
