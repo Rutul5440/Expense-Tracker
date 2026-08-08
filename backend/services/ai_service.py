@@ -176,10 +176,16 @@ Do NOT output markdown formatting like ```json or any explanations. Return only 
 """
 
     try:
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=prompt
-        )
+        try:
+            response = client.models.generate_content(
+                model='gemini-2.0-flash',
+                contents=prompt
+            )
+        except Exception:
+            response = client.models.generate_content(
+                model='gemini-1.5-flash',
+                contents=prompt
+            )
         response_text = response.text.strip()
         # Remove ```json wrappers if present
         cleaned_json = re.sub(r'^```json\s*', '', response_text)
@@ -263,11 +269,18 @@ Provide actionable insights, highlight top categories, note month-over-month tre
 """
 
     try:
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=prompt
-        )
+        try:
+            response = client.models.generate_content(
+                model='gemini-2.0-flash',
+                contents=prompt
+            )
+        except Exception:
+            response = client.models.generate_content(
+                model='gemini-1.5-flash',
+                contents=prompt
+            )
         return response.text.strip()
     except Exception as e:
         print(f"[AIService] Gemini narrative generation failed ({e}). Falling back to heuristic summary.")
         return build_heuristic_summary()
+

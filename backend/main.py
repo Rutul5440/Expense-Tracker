@@ -95,9 +95,10 @@ frontend_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__fi
 if os.path.exists(frontend_dir):
     app.mount("/static", StaticFiles(directory=frontend_dir), name="static")
 
-    @app.get("/", include_in_schema=False)
-    async def serve_index():
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def serve_index(full_path: str):
         return FileResponse(os.path.join(frontend_dir, "index.html"))
+
 
 
 if __name__ == "__main__":
