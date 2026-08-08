@@ -1,6 +1,33 @@
 from datetime import date as date_type, datetime
 from typing import Optional, Dict, Any, List
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, EmailStr
+
+
+# --- Auth Schemas ---
+class UserRegister(BaseModel):
+    email: str = Field(..., json_schema_extra={"example": "user@example.com"})
+    username: str = Field(..., json_schema_extra={"example": "John Doe"})
+    password: str = Field(..., min_length=6, json_schema_extra={"example": "secret123"})
+
+
+class UserLogin(BaseModel):
+    email: str = Field(..., json_schema_extra={"example": "user@example.com"})
+    password: str = Field(..., json_schema_extra={"example": "secret123"})
+
+
+class UserResponse(BaseModel):
+    id: int
+    email: str
+    username: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserResponse
 
 
 # --- Category Schemas ---
@@ -16,6 +43,7 @@ class CategoryCreate(CategoryBase):
 class CategoryResponse(CategoryBase):
     id: int
     is_default: bool
+    user_id: Optional[int] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -36,16 +64,15 @@ class ExpenseCreate(ExpenseBase):
 class ExpenseResponse(ExpenseBase):
     id: int
     created_at: datetime
+    user_id: Optional[int] = None
     category: Optional[CategoryResponse] = None
 
     model_config = ConfigDict(from_attributes=True)
 
 
-
 # --- AI & Parsing Schemas ---
 class NaturalLanguageInput(BaseModel):
     text: str = Field(..., json_schema_extra={"example": "spent 250 on petrol yesterday"})
-
 
 
 class AIParseResponse(BaseModel):
@@ -74,7 +101,7 @@ class DashboardSummary(BaseModel):
     prev_month_total: float
     percentage_change: float
     expense_count: int
-    top_categories: list[CategoryBreakdownItem]
+    top_categories: List[CategoryBreakdownItem]
     category_breakdown: Dict[str, float]
 
 

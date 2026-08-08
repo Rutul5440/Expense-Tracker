@@ -5,6 +5,7 @@
 const state = {
   currentView: 'dashboard',
   selectedMonth: new Date().toISOString().slice(0, 7), // 'YYYY-MM'
+  currentUser: null,
   categories: [],
   expenses: [],
   parsedAIExpense: null,
@@ -16,9 +17,155 @@ const state = {
 document.addEventListener('DOMContentLoaded', async () => {
   initMonthSelector();
   setupEventListeners();
+  setupAuthEventListeners();
+  await initAuth();
   await loadCategories();
   await refreshCurrentView();
 });
+
+async function initAuth() {
+  const token = localStorage.getItem('access_token');
+  if (token) {
+    try {
+      state.currentUser = await API.getMe();
+    } catch (err) {
+      console.warn('Token expired or invalid:', err.message);
+      localStorage.removeItem('access_token');
+      state.currentUser = null;
+    }
+  }
+  updateAuthHeaderUI();
+}
+
+function updateAuthHeaderUI() {
+  const container = document.getElementById('auth-header-container');
+  if (!container) return;
+
+  if (state.currentUser) {
+    container.innerHTML = `
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <div class="flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1 rounded-lg bg-purple-500/10 border border-purple-500/30 text-[11px] sm:text-xs font-semibold text-purple-200 max-w-[100px] sm:max-w-[160px]">
+          <span>👤</span>
+          <span class="truncate">${state.currentUser.username}</span>
+        </div>
+        <button id="logout-btn" class="px-2 py-1 sm:px-2.5 sm:py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] sm:text-xs font-medium text-gray-300 transition shrink-0" title="Log Out">
+          🚪 Logout
+        </button>
+      </div>
+    `;
+    document.getElementById('logout-btn')?.addEventListener('click', handleLogout);
+  } else {
+    container.innerHTML = `
+      <button id="open-auth-modal-btn" class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/40 text-[11px] sm:text-xs font-semibold text-purple-200 transition flex items-center gap-1">
+        <span>🔐</span> Login / Register
+      </button>
+    `;
+    document.getElementById('open-auth-modal-btn')?.addEventListener('click', openAuthModal);
+  }
+}
+
+
+function openAuthModal() {
+  document.getElementById('auth-modal')?.classList.remove('hidden');
+}
+
+function closeAuthModal() {
+  document.getElementById('auth-modal')?.classList.add('hidden');
+}
+
+function setupAuthEventListeners() {
+  document.getElementById('open-auth-modal-btn')?.addEventListener('click', openAuthModal);
+  document.getElementById('close-auth-modal-btn')?.addEventListener('click', closeAuthModal);
+
+  const loginTab = document.getElementById('tab-login-btn');
+  const regTab = document.getElementById('tab-register-btn');
+  const loginForm = document.getElementById('login-form');
+  const regForm = document.getElementById('register-form');
+
+  if (loginTab && regTab) {
+    loginTab.addEventListener('click', () => {
+      loginTab.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition bg-purple-600 text-white';
+      regTab.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition text-gray-400 hover:text-white';
+      loginForm?.classList.remove('hidden');
+      regForm?.classList.add('hidden');
+    });
+
+    regTab.addEventListener('click', () => {
+      regTab.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition bg-purple-600 text-white';
+      loginTab.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition text-gray-400 hover:text-white';
+      regForm?.classList.remove('hidden');
+      loginForm?.classList.add('hidden');
+    });
+  }
+
+  loginForm?.addEventListener('submit', handleLoginSubmit);
+  regForm?.addEventListener('submit', handleRegisterSubmit);
+}
+
+async function handleLoginSubmit(e) {
+  e.preventDefault();
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+
+  const btn = document.getElementById('login-submit-btn');
+  const origText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = 'Signing in...';
+
+  try {
+    const res = await API.login(email, password);
+    localStorage.setItem('access_token', res.access_token);
+    state.currentUser = res.user;
+    updateAuthHeaderUI();
+    closeAuthModal();
+    showToast(`Welcome back, ${res.user.username}!`, 'success');
+    await loadCategories();
+    await refreshCurrentView();
+  } catch (err) {
+    showToast('Login failed: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = origText;
+  }
+}
+
+async function handleRegisterSubmit(e) {
+  e.preventDefault();
+  const username = document.getElementById('reg-username').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+
+  const btn = document.getElementById('register-submit-btn');
+  const origText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = 'Creating account...';
+
+  try {
+    const res = await API.register(email, username, password);
+    localStorage.setItem('access_token', res.access_token);
+    state.currentUser = res.user;
+    updateAuthHeaderUI();
+    closeAuthModal();
+    showToast(`Account created! Welcome, ${res.user.username}.`, 'success');
+    await loadCategories();
+    await refreshCurrentView();
+  } catch (err) {
+    showToast('Registration failed: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = origText;
+  }
+}
+
+function handleLogout() {
+  localStorage.removeItem('access_token');
+  state.currentUser = null;
+  updateAuthHeaderUI();
+  showToast('Logged out.', 'info');
+  loadCategories();
+  refreshCurrentView();
+}
+
 
 function initMonthSelector() {
   const monthInput = document.getElementById('month-selector');

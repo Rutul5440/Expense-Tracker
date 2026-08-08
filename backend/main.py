@@ -12,7 +12,7 @@ from fastapi.responses import FileResponse
 
 from backend.database import engine, Base, SessionLocal
 from backend.models import Category
-from backend.routes import expenses, categories, dashboard, ai
+from backend.routes import expenses, categories, dashboard, ai, auth
 from backend.scheduler import start_scheduler, stop_scheduler
 
 DEFAULT_CATEGORIES = [
@@ -51,13 +51,25 @@ def seed_default_categories():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup tasks
+    # Startup tasks - Schema check for SQLite user_id migration
+    try:
+        from sqlalchemy import inspect
+        inspector = inspect(engine)
+        if "categories" in inspector.get_table_names():
+            columns = [c["name"] for c in inspector.get_columns("categories")]
+            if "user_id" not in columns:
+                print("[Main] Migrating database schema for User Isolation...")
+                Base.metadata.drop_all(bind=engine)
+    except Exception as e:
+        print(f"[Main] Schema check info: {e}")
+
     Base.metadata.create_all(bind=engine)
     seed_default_categories()
     try:
         start_scheduler()
     except Exception as e:
         print(f"[Main] Scheduler start warning: {e}")
+
 
     yield
 
@@ -85,6 +97,7 @@ app.add_middleware(
 )
 
 # Include API Routers
+app.include_router(auth.router)
 app.include_router(expenses.router)
 app.include_router(categories.router)
 app.include_router(dashboard.router)

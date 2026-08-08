@@ -15,6 +15,11 @@
   --text-muted: #9ca3af;
 }
 
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
 body {
   font-family: 'Outfit', 'Inter', sans-serif;
   background-color: var(--bg-primary);
@@ -99,10 +104,23 @@ body {
 
 /* Mobile Bottom Navigation Bar */
 .bottom-nav {
-  background: rgba(15, 23, 42, 0.9);
+  background: rgba(15, 23, 42, 0.95);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-top: 1px solid var(--border-glass);
+}
+
+.bottom-nav button {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 1px;
+}
+
+.bottom-nav button span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .nav-link {

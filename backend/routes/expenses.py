@@ -2,19 +2,31 @@ from typing import List, Optional
 from datetime import datetime, date
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
-from sqlalchemy import extract, desc
+from sqlalchemy import extract, desc, or_
 
 from backend.database import get_db
-from backend.models import Expense, Category
+from backend.models import Expense, Category, User
 from backend.schemas import ExpenseCreate, ExpenseResponse
+from backend.auth import get_optional_current_user
 
 router = APIRouter(prefix="/api/expenses", tags=["Expenses"])
 
 
 @router.post("", response_model=ExpenseResponse, status_code=status.HTTP_201_CREATED)
-def create_expense(expense_in: ExpenseCreate, db: Session = Depends(get_db)):
-    """Create a new expense entry."""
-    category = db.query(Category).filter(Category.id == expense_in.category_id).first()
+def create_expense(
+    expense_in: ExpenseCreate,
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_optional_current_user)
+):
+    """Create a new expense entry linked to the current user."""
+    user_id = current_user.id if current_user else None
+    
+    # Check category existence (global default or owned by user)
+    category = db.query(Category).filter(
+        Category.id == expense_in.category_id,
+        or_(Category.user_id == None, Category.user_id == user_id)
+    ).first()
+    
     if not category:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -24,6 +36,7 @@ def create_expense(expense_in: ExpenseCreate, db: Session = Depends(get_db)):
     expense = Expense(
         amount=expense_in.amount,
         category_id=expense_in.category_id,
+        user_id=user_id,
         description=expense_in.description,
         raw_input=expense_in.raw_input,
         date=expense_in.date or date.today()
@@ -41,10 +54,12 @@ def get_expenses(
     search: Optional[str] = Query(None, description="Search description or raw input"),
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_optional_current_user)
 ):
-    """Retrieve expense list with optional filtering and pagination."""
-    query = db.query(Expense).join(Category)
+    """Retrieve expense list scoped to current user."""
+    user_id = current_user.id if current_user else None
+    query = db.query(Expense).join(Category).filter(Expense.user_id == user_id)
 
     if month:
         try:
@@ -73,9 +88,14 @@ def get_expenses(
 
 
 @router.delete("/{expense_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_expense(expense_id: int, db: Session = Depends(get_db)):
-    """Delete an expense entry."""
-    expense = db.query(Expense).filter(Expense.id == expense_id).first()
+def delete_expense(
+    expense_id: int,
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_optional_current_user)
+):
+    """Delete an expense entry owned by current user."""
+    user_id = current_user.id if current_user else None
+    expense = db.query(Expense).filter(Expense.id == expense_id, Expense.user_id == user_id).first()
     if not expense:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

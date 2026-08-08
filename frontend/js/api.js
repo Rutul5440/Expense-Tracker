@@ -1,9 +1,21 @@
 /**
- * API Wrapper for Smart Expense Tracker Backend with Automatic Retry & Safe Error Handling
+ * API Wrapper for Smart Expense Tracker Backend with Authentication & Automatic Retry
  */
 const API_BASE = '/api';
 
+function getAuthHeaders() {
+  const token = localStorage.getItem('access_token');
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+}
+
 async function fetchWithRetry(url, options = {}, retries = 4, delay = 2500) {
+  // Inject Auth Headers if not provided
+  options.headers = { ...getAuthHeaders(), ...(options.headers || {}) };
+
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
       const res = await fetch(url, options);
@@ -45,6 +57,29 @@ async function handleResponse(res, fallbackMsg) {
 }
 
 const API = {
+  // --- Auth APIs ---
+  async register(email, username, password) {
+    const res = await fetchWithRetry(`${API_BASE}/auth/register`, {
+      method: 'POST',
+      body: JSON.stringify({ email, username, password })
+    });
+    return await handleResponse(res, 'Registration failed');
+  },
+
+  async login(email, password) {
+    const res = await fetchWithRetry(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      body: JSON.stringify({ email, password })
+    });
+    return await handleResponse(res, 'Login failed');
+  },
+
+  async getMe() {
+    const res = await fetchWithRetry(`${API_BASE}/auth/me`);
+    return await handleResponse(res, 'Failed to fetch user profile');
+  },
+
+  // --- Data APIs ---
   async getCategories() {
     const res = await fetchWithRetry(`${API_BASE}/categories`);
     return await handleResponse(res, 'Failed to load categories');
@@ -53,7 +88,6 @@ const API = {
   async createCategory(categoryData) {
     const res = await fetchWithRetry(`${API_BASE}/categories`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(categoryData)
     });
     return await handleResponse(res, 'Failed to create category');
@@ -72,7 +106,6 @@ const API = {
   async createExpense(expenseData) {
     const res = await fetchWithRetry(`${API_BASE}/expenses`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(expenseData)
     });
     return await handleResponse(res, 'Failed to add expense');
@@ -98,7 +131,6 @@ const API = {
   async parseExpenseText(text) {
     const res = await fetchWithRetry(`${API_BASE}/ai/parse`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text })
     });
     return await handleResponse(res, 'AI parsing failed');

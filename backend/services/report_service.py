@@ -19,15 +19,19 @@ def get_previous_month(month_str: str) -> str:
     return prev_dt.strftime("%Y-%m")
 
 
-def calculate_dashboard_data(db: Session, month_str: str) -> Dict[str, Any]:
-    """Calculate real-time aggregated metrics for dashboard for a specific YYYY-MM month."""
+def calculate_dashboard_data(db: Session, month_str: str, user_id: Optional[int] = None) -> Dict[str, Any]:
+    """Calculate real-time aggregated metrics for dashboard for a specific YYYY-MM month scoped by user_id."""
     year, month = map(int, month_str.split("-"))
 
     # Fetch expenses for target month
     expenses = (
         db.query(Expense)
         .join(Category)
-        .filter(extract("year", Expense.date) == year, extract("month", Expense.date) == month)
+        .filter(
+            extract("year", Expense.date) == year,
+            extract("month", Expense.date) == month,
+            Expense.user_id == user_id
+        )
         .all()
     )
 
@@ -36,7 +40,11 @@ def calculate_dashboard_data(db: Session, month_str: str) -> Dict[str, Any]:
 
     prev_expenses = (
         db.query(Expense)
-        .filter(extract("year", Expense.date) == prev_year, extract("month", Expense.date) == prev_month)
+        .filter(
+            extract("year", Expense.date) == prev_year,
+            extract("month", Expense.date) == prev_month,
+            Expense.user_id == user_id
+        )
         .all()
     )
 
@@ -96,15 +104,18 @@ def calculate_dashboard_data(db: Session, month_str: str) -> Dict[str, Any]:
     }
 
 
-def get_or_generate_monthly_report(db: Session, month_str: str, force_refresh: bool = False) -> MonthlyReport:
-    """Fetch cached monthly report or generate AI report if missing/forced."""
-    report = db.query(MonthlyReport).filter(MonthlyReport.month == month_str).first()
+def get_or_generate_monthly_report(db: Session, month_str: str, force_refresh: bool = False, user_id: Optional[int] = None) -> MonthlyReport:
+    """Fetch cached monthly report or generate AI report if missing/forced, scoped by user_id."""
+    report = db.query(MonthlyReport).filter(
+        MonthlyReport.month == month_str,
+        MonthlyReport.user_id == user_id
+    ).first()
 
     if report and not force_refresh:
         return report
 
     # Calculate metrics
-    dashboard_data = calculate_dashboard_data(db, month_str)
+    dashboard_data = calculate_dashboard_data(db, month_str, user_id=user_id)
     
     ai_narrative = generate_monthly_ai_summary(
         month=month_str,
@@ -124,6 +135,7 @@ def get_or_generate_monthly_report(db: Session, month_str: str, force_refresh: b
     else:
         report = MonthlyReport(
             month=month_str,
+            user_id=user_id,
             total_amount=dashboard_data["total_amount"],
             category_breakdown_json=breakdown_json,
             ai_summary=ai_narrative,

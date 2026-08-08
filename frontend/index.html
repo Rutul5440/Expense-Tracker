@@ -21,17 +21,17 @@
   <div id="toast-container"></div>
 
   <!-- Header / Navigation Bar -->
-  <header class="sticky top-0 z-40 backdrop-blur-xl bg-slate-950/80 border-b border-white/10 px-4 py-3.5">
-    <div class="max-w-6xl mx-auto flex items-center justify-between">
+  <header class="sticky top-0 z-40 backdrop-blur-xl bg-slate-950/80 border-b border-white/10 px-3 sm:px-4 py-2 sm:py-3">
+    <div class="max-w-6xl mx-auto flex flex-wrap sm:flex-nowrap items-center justify-between gap-2">
       
       <!-- Brand Logo -->
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl gradient-btn flex items-center justify-center text-xl shadow-lg shadow-purple-500/20">
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl gradient-btn flex items-center justify-center text-lg sm:text-xl shadow-lg shadow-purple-500/20 shrink-0">
           💎
         </div>
         <div>
-          <h1 class="font-extrabold text-lg tracking-tight gradient-text">SmartSpend AI</h1>
-          <p class="text-[11px] text-gray-400 font-medium">Personal Finance Assistant</p>
+          <h1 class="font-extrabold text-sm sm:text-lg tracking-tight gradient-text leading-tight">SmartSpend AI</h1>
+          <p class="text-[10px] sm:text-[11px] text-gray-400 font-medium">Personal Finance Assistant</p>
         </div>
       </div>
 
@@ -54,19 +54,23 @@
         </button>
       </nav>
 
-      <!-- Month Selector & AI Status Indicator -->
-      <div class="flex items-center gap-3">
+      <!-- Month Selector & User Auth Controls -->
+      <div class="flex items-center gap-2 sm:gap-3 shrink-0">
         <div class="relative">
-          <input type="month" id="month-selector" class="glass-input text-xs font-semibold px-3 py-1.5 rounded-lg cursor-pointer text-gray-200">
+          <input type="month" id="month-selector" class="glass-input text-[11px] sm:text-xs font-semibold px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg cursor-pointer text-gray-200">
         </div>
-        <div class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] text-emerald-400 font-medium pulse-ai">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-          AI Ready
+        
+        <!-- Auth Profile Badge / Login Button -->
+        <div id="auth-header-container">
+          <button class="open-auth-trigger px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/40 text-[11px] sm:text-xs font-semibold text-purple-200 transition flex items-center gap-1">
+            <span>🔐</span> Login / Register
+          </button>
         </div>
       </div>
 
     </div>
   </header>
+
 
   <!-- Main View Container -->
   <main class="max-w-6xl mx-auto px-4 pt-6">
@@ -403,8 +407,69 @@
     </button>
   </nav>
 
+  <!-- Authentication Modal -->
+  <div id="auth-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md hidden p-4">
+
+    <div class="glass-panel p-6 sm:p-8 max-w-md w-full border-purple-500/40 relative shadow-2xl glow-purple">
+      
+      <!-- Close Button -->
+      <button id="close-auth-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg">✕</button>
+
+      <!-- Auth Header -->
+      <div class="text-center mb-6">
+        <div class="w-12 h-12 rounded-2xl gradient-btn flex items-center justify-center text-2xl mx-auto mb-2 shadow-lg shadow-purple-500/20">
+          💎
+        </div>
+        <h2 class="text-xl font-extrabold text-white gradient-text">SmartSpend AI Account</h2>
+        <p class="text-xs text-gray-400 mt-1">Manage your personal expenses securely</p>
+      </div>
+
+      <!-- Auth Tabs -->
+      <div class="flex bg-slate-900/60 p-1 rounded-xl border border-white/10 mb-6">
+        <button id="tab-login-btn" class="flex-1 py-2 text-xs font-bold rounded-lg transition bg-purple-600 text-white">Login</button>
+        <button id="tab-register-btn" class="flex-1 py-2 text-xs font-bold rounded-lg transition text-gray-400 hover:text-white">Register</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1">Email Address</label>
+          <input type="email" id="login-email" required placeholder="you@example.com" class="w-full glass-input p-3 rounded-xl text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1">Password</label>
+          <input type="password" id="login-password" required placeholder="••••••••" class="w-full glass-input p-3 rounded-xl text-sm">
+        </div>
+        <button type="submit" id="login-submit-btn" class="w-full py-3 rounded-xl gradient-btn font-bold text-sm text-white">
+          Sign In
+        </button>
+      </form>
+
+      <!-- Register Form -->
+      <form id="register-form" class="space-y-4 hidden">
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1">Full Name / Username</label>
+          <input type="text" id="reg-username" required placeholder="John Doe" class="w-full glass-input p-3 rounded-xl text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1">Email Address</label>
+          <input type="email" id="reg-email" required placeholder="you@example.com" class="w-full glass-input p-3 rounded-xl text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1">Password</label>
+          <input type="password" id="reg-password" required minlength="6" placeholder="At least 6 characters" class="w-full glass-input p-3 rounded-xl text-sm">
+        </div>
+        <button type="submit" id="register-submit-btn" class="w-full py-3 rounded-xl gradient-btn font-bold text-sm text-white">
+          Create Free Account
+        </button>
+      </form>
+
+    </div>
+  </div>
+
   <!-- JS Dependencies -->
   <script src="/static/js/api.js"></script>
+
   <script src="/static/js/charts.js"></script>
   <script src="/static/js/app.js"></script>
 </body>
