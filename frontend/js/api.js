@@ -134,5 +134,54 @@ const API = {
       body: JSON.stringify({ text })
     });
     return await handleResponse(res, 'AI parsing failed');
+  },
+
+  // --- Friends & Split Expenses APIs ---
+  async getFriends() {
+    const res = await fetchWithRetry(`${API_BASE}/friends`);
+    return await handleResponse(res, 'Failed to load friends');
+  },
+
+  async createFriend(friendData) {
+    const res = await fetchWithRetry(`${API_BASE}/friends`, {
+      method: 'POST',
+      body: JSON.stringify(friendData)
+    });
+    return await handleResponse(res, 'Failed to add friend');
+  },
+
+  async deleteFriend(friendId) {
+    const res = await fetchWithRetry(`${API_BASE}/friends/${friendId}`, {
+      method: 'DELETE'
+    });
+    return await handleResponse(res, 'Failed to delete friend');
+  },
+
+  async getSplits() {
+    const res = await fetchWithRetry(`${API_BASE}/splits`);
+    return await handleResponse(res, 'Failed to load split expenses');
+  },
+
+  async createSplit(splitData) {
+    const res = await fetchWithRetry(`${API_BASE}/splits`, {
+      method: 'POST',
+      body: JSON.stringify(splitData)
+    });
+    return await handleResponse(res, 'Failed to create split expense');
+  },
+
+  async deleteSplit(splitId) {
+    const res = await fetchWithRetry(`${API_BASE}/splits/${splitId}`, {
+      method: 'DELETE'
+    });
+    return await handleResponse(res, 'Failed to delete split expense');
+  },
+
+  async settleUp(settleData) {
+    const res = await fetchWithRetry(`${API_BASE}/splits/settle`, {
+      method: 'POST',
+      body: JSON.stringify(settleData)
+    });
+    return await handleResponse(res, 'Failed to record settlement');
   }
 };

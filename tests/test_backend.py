@@ -105,3 +105,74 @@ def test_dashboard_and_report_endpoints(client):
     assert report_resp.status_code == 200
     report_data = report_resp.json()
     assert "ai_summary" in report_data
+
+
+def test_friends_and_split_expenses(client):
+    # Register test user
+    user_token = client.post("/api/auth/register", json={
+        "email": "splituser@example.com", "username": "Split User", "password": "pass123"
+    }).json()["access_token"]
+
+    headers = {"Authorization": f"Bearer {user_token}"}
+
+    # 1. Add Friend 1 and Friend 2
+    f1 = client.post("/api/friends", headers=headers, json={"name": "Friend 1"}).json()
+    f2 = client.post("/api/friends", headers=headers, json={"name": "Friend 2"}).json()
+    assert f1["name"] == "Friend 1"
+    assert f2["name"] == "Friend 2"
+
+    # 2. Friend 1 pays for Soda (₹20 total split between Friend 1 and Friend 2)
+    # Friend 1 pays, User & Friend 2 participants (10 each) or Friend 1 pays for User & Friend 2
+    split1 = client.post("/api/splits", headers=headers, json={
+        "title": "Soda",
+        "total_amount": 20.0,
+        "transaction_type": "EXPENSE",
+        "paid_by_user": False,
+        "paid_by_friend_id": f1["id"],
+        "date": "2026-08-22",
+        "participants": [
+            {"is_user": True},
+            {"friend_id": f2["id"]}
+        ]
+    })
+    assert split1.status_code == 201
+
+    # Check friend balances: User owes Friend 1 ₹10. Net(Friend 1) = -10.0
+    friends = client.get("/api/friends", headers=headers).json()
+    friend1_data = next(f for f in friends if f["id"] == f1["id"])
+    assert friend1_data["net_balance"] == -10.0
+
+    # 3. User pays for Ice Cream (₹50 total split between User and Friend 1)
+    split2 = client.post("/api/splits", headers=headers, json={
+        "title": "Ice Cream",
+        "total_amount": 50.0,
+        "transaction_type": "EXPENSE",
+        "paid_by_user": True,
+        "date": "2026-08-22",
+        "participants": [
+            {"is_user": True},
+            {"friend_id": f1["id"]}
+        ]
+    })
+    assert split2.status_code == 201
+
+    # Check friend balances: Friend 1 owed User ₹25 for Ice Cream.
+    # Previously User owed Friend 1 ₹10 for Soda.
+    # Net balance for Friend 1 = +25 - 10 = +15.0 (Friend 1 owes User ₹15.0)
+    friends = client.get("/api/friends", headers=headers).json()
+    friend1_data = next(f for f in friends if f["id"] == f1["id"])
+    assert friend1_data["net_balance"] == 15.0
+
+    # 4. Settle Up ₹15 with Friend 1
+    settle_resp = client.post("/api/splits/settle", headers=headers, json={
+        "friend_id": f1["id"],
+        "amount": 15.0,
+        "notes": "Paid via UPI"
+    })
+    assert settle_resp.status_code == 201
+
+    # Check net balance after settlement -> should be 0.0
+    friends_after = client.get("/api/friends", headers=headers).json()
+    friend1_after = next(f for f in friends_after if f["id"] == f1["id"])
+    assert friend1_after["net_balance"] == 0.0
+

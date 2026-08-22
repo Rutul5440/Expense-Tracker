@@ -12,7 +12,7 @@ from fastapi.responses import FileResponse
 
 from backend.database import engine, Base, SessionLocal
 from backend.models import Category
-from backend.routes import expenses, categories, dashboard, ai, auth
+from backend.routes import expenses, categories, dashboard, ai, auth, splits
 from backend.scheduler import start_scheduler, stop_scheduler
 
 DEFAULT_CATEGORIES = [
@@ -102,6 +102,7 @@ app.include_router(expenses.router)
 app.include_router(categories.router)
 app.include_router(dashboard.router)
 app.include_router(ai.router)
+app.include_router(splits.router)
 
 # Mount Frontend static files
 frontend_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend")

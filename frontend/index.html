@@ -43,6 +43,9 @@
         <button data-view-target="quick-add" class="nav-link px-4 py-2 rounded-lg text-sm transition flex items-center gap-2">
           <span>✨</span> Quick Add AI
         </button>
+        <button data-view-target="splits" class="nav-link px-4 py-2 rounded-lg text-sm transition flex items-center gap-2">
+          <span>🤝</span> Split & Friends
+        </button>
         <button data-view-target="report" class="nav-link px-4 py-2 rounded-lg text-sm transition flex items-center gap-2">
           <span>🧠</span> AI Report
         </button>
@@ -371,6 +374,76 @@
 
     </div>
 
+    <!-- 6. GROUP & FRIEND EXPENSE SPLITS VIEW -->
+    <div id="view-splits" class="view-container hidden space-y-6">
+      
+      <!-- Top Overview & Action Bar -->
+      <div class="glass-panel p-6 border-purple-500/30">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-purple-400">Group Expenses & Debt Tracker</span>
+            <h2 class="text-xl font-extrabold text-white mt-1">Friends & Splitwise Balances</h2>
+            <p class="text-xs text-gray-400 mt-1">Split group bills (Soda, Ice cream) & track direct loans. Net balances are auto-calculated!</p>
+          </div>
+          
+          <div class="flex flex-wrap gap-2">
+            <button id="open-add-friend-modal-btn" class="px-3 py-2 rounded-xl bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/40 text-xs font-bold text-purple-200 transition flex items-center gap-1.5">
+              <span>👤</span> Add Friend
+            </button>
+            <button id="open-add-split-modal-btn" class="px-3 py-2 rounded-xl gradient-btn font-bold text-xs text-white flex items-center gap-1.5">
+              <span>➕</span> Split Shared Bill
+            </button>
+            <button id="open-direct-loan-modal-btn" class="px-3 py-2 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-500/40 text-xs font-bold text-indigo-200 transition flex items-center gap-1.5">
+              <span>💸</span> Direct Loan
+            </button>
+            <button id="open-settle-modal-btn" class="px-3 py-2 rounded-xl bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-500/40 text-xs font-bold text-emerald-200 transition flex items-center gap-1.5">
+              <span>🤝</span> Settle Up
+            </button>
+          </div>
+        </div>
+
+        <!-- Overall Summary Banner -->
+        <div class="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 border-t border-white/10">
+          <div class="p-3 rounded-xl bg-slate-900/60 border border-white/5">
+            <span class="text-[11px] text-gray-400 block font-semibold uppercase">Total You are Owed</span>
+            <span id="splits-total-owed" class="text-lg font-extrabold text-emerald-400">₹0.00</span>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-900/60 border border-white/5">
+            <span class="text-[11px] text-gray-400 block font-semibold uppercase">Total You Owe</span>
+            <span id="splits-total-owe" class="text-lg font-extrabold text-rose-400">₹0.00</span>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-900/60 border border-white/5">
+            <span class="text-[11px] text-gray-400 block font-semibold uppercase">Overall Net Status</span>
+            <span id="splits-net-status" class="text-lg font-extrabold text-purple-300">Settled Up</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Friends Balance Cards Grid -->
+      <div class="glass-panel p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-bold text-base text-gray-100 flex items-center gap-2">
+            <span>👥</span> Friends & Net Balances
+          </h3>
+          <span class="text-xs text-gray-400 font-medium" id="friends-count-badge">0 Friends</span>
+        </div>
+        <div id="friends-list-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- Split Transactions History Feed -->
+      <div class="glass-panel p-6">
+        <h3 class="font-bold text-base text-gray-100 mb-4 flex items-center gap-2">
+          <span>📜</span> Split & Debt History
+        </h3>
+        <div id="splits-history-list" class="space-y-3">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+    </div>
+
   </main>
 
   <!-- Mobile Bottom Navigation Bar -->
@@ -386,6 +459,12 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
       </svg>
       Quick Add
+    </button>
+    <button data-view-target="splits" class="nav-link flex flex-col items-center gap-1 text-[10px]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 stroke-current" fill="none" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+      </svg>
+      Splits
     </button>
     <button data-view-target="report" class="nav-link flex flex-col items-center gap-1 text-[10px]">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 stroke-current" fill="none" viewBox="0 0 24 24">
@@ -464,6 +543,163 @@
         </button>
       </form>
 
+    </div>
+  </div>
+
+  <!-- Add Friend Modal -->
+  <div id="add-friend-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md hidden p-4">
+    <div class="glass-panel p-6 max-w-md w-full border-purple-500/40 relative shadow-2xl">
+      <button onclick="document.getElementById('add-friend-modal').classList.add('hidden')" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg">✕</button>
+      <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2"><span>👤</span> Add New Friend</h3>
+      <form id="add-friend-form" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1">Friend's Name *</label>
+          <input type="text" id="friend-name-input" required placeholder="e.g. Alex" class="w-full glass-input p-3 rounded-xl text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1">Email (Optional)</label>
+          <input type="email" id="friend-email-input" placeholder="alex@example.com" class="w-full glass-input p-3 rounded-xl text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1">Phone Number (Optional)</label>
+          <input type="tel" id="friend-phone-input" placeholder="+91 9876543210" class="w-full glass-input p-3 rounded-xl text-sm">
+        </div>
+        <button type="submit" class="w-full py-3 rounded-xl gradient-btn font-bold text-sm text-white">Save Friend</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Shared Bill Modal -->
+  <div id="add-split-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md hidden p-4">
+    <div class="glass-panel p-6 max-w-lg w-full border-purple-500/40 relative shadow-2xl max-h-[90vh] overflow-y-auto">
+      <button onclick="document.getElementById('add-split-modal').classList.add('hidden')" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg">✕</button>
+      <h3 class="text-lg font-bold text-white mb-1 flex items-center gap-2"><span>➕</span> Split Shared Bill</h3>
+      <p class="text-xs text-gray-400 mb-4">Record expenses like soda, meals, or outings shared with friends.</p>
+      
+      <form id="add-split-form" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1">Bill Title / Description *</label>
+          <input type="text" id="split-title" required placeholder="e.g. Soda & Evening Snacks" class="w-full glass-input p-2.5 rounded-xl text-sm">
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1">Total Amount (₹) *</label>
+            <input type="number" step="0.01" id="split-total-amount" required placeholder="0.00" class="w-full glass-input p-2.5 rounded-xl text-sm font-bold text-white">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1">Who Paid? *</label>
+            <select id="split-paid-by" required class="w-full glass-input p-2.5 rounded-xl text-sm text-gray-200">
+              <option value="user">You (Logged-in User)</option>
+              <!-- Dynamic friends list -->
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1">Select Participants (Bill Splitters)</label>
+          <div id="split-participants-checkboxes" class="space-y-2 p-3 rounded-xl bg-slate-900/60 border border-white/10 max-h-36 overflow-y-auto">
+            <!-- Dynamic checkboxes -->
+          </div>
+          <div id="split-preview-text" class="text-xs text-purple-300 font-semibold mt-1 italic">
+            Select participants to view split share.
+          </div>
+        </div>
+
+        <div class="p-3 rounded-xl bg-purple-950/20 border border-purple-500/20 space-y-2">
+          <label class="flex items-center gap-2 text-xs font-medium text-purple-200 cursor-pointer">
+            <input type="checkbox" id="split-log-personal" class="rounded accent-purple-500">
+            Log my portion as a personal expense in my tracker
+          </label>
+          <div id="split-category-select-wrapper" class="hidden pt-1">
+            <label class="block text-[11px] font-semibold text-gray-400 mb-1">Category for Personal Expense</label>
+            <select id="split-category-select" class="w-full glass-input p-2 rounded-lg text-xs">
+              <!-- Filled dynamically -->
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1">Date</label>
+            <input type="date" id="split-date" class="w-full glass-input p-2.5 rounded-xl text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1">Notes (Optional)</label>
+            <input type="text" id="split-notes" placeholder="e.g. Paid cash at cafe" class="w-full glass-input p-2.5 rounded-xl text-sm">
+          </div>
+        </div>
+
+        <button type="submit" class="w-full py-3 rounded-xl gradient-btn font-bold text-sm text-white">Save Shared Expense</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Direct Loan / Cash Transfer Modal -->
+  <div id="direct-loan-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md hidden p-4">
+    <div class="glass-panel p-6 max-w-md w-full border-indigo-500/40 relative shadow-2xl">
+      <button onclick="document.getElementById('direct-loan-modal').classList.add('hidden')" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg">✕</button>
+      <h3 class="text-lg font-bold text-white mb-1 flex items-center gap-2"><span>💸</span> Direct Money Transfer / Loan</h3>
+      <p class="text-xs text-gray-400 mb-4">Record cash lent to or borrowed from a friend directly.</p>
+
+      <form id="direct-loan-form" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1">Select Friend *</label>
+          <select id="loan-friend-select" required class="w-full glass-input p-2.5 rounded-xl text-sm text-gray-200">
+            <!-- Dynamic friends list -->
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1">Direction / Flow *</label>
+          <select id="loan-direction" required class="w-full glass-input p-2.5 rounded-xl text-sm text-gray-200">
+            <option value="gave">I gave money to Friend (Friend owes me)</option>
+            <option value="took">Friend gave money to me (I owe Friend)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1">Amount (₹) *</label>
+          <input type="number" step="0.01" id="loan-amount" required placeholder="0.00" class="w-full glass-input p-2.5 rounded-xl text-sm font-bold text-white">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1">Note / Reason</label>
+          <input type="text" id="loan-note" placeholder="e.g. Lent cash for bus ticket" class="w-full glass-input p-2.5 rounded-xl text-sm">
+        </div>
+
+        <button type="submit" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-bold text-sm text-white transition">Save Loan Record</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Settle Up Modal -->
+  <div id="settle-up-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md hidden p-4">
+    <div class="glass-panel p-6 max-w-md w-full border-emerald-500/40 relative shadow-2xl">
+      <button onclick="document.getElementById('settle-up-modal').classList.add('hidden')" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg">✕</button>
+      <h3 class="text-lg font-bold text-white mb-1 flex items-center gap-2"><span>🤝</span> Settle Up Debt</h3>
+      <p class="text-xs text-gray-400 mb-4">Record a repayment to clear or reduce debt balance with a friend.</p>
+
+      <form id="settle-up-form" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1">Select Friend *</label>
+          <select id="settle-friend-select" required class="w-full glass-input p-2.5 rounded-xl text-sm text-gray-200">
+            <!-- Dynamic friends list -->
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1">Settlement Amount (₹) *</label>
+          <input type="number" step="0.01" id="settle-amount" required placeholder="0.00" class="w-full glass-input p-2.5 rounded-xl text-sm font-bold text-emerald-300">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1">Notes / Payment Method</label>
+          <input type="text" id="settle-notes" placeholder="e.g. Paid via GPay / PhonePe" class="w-full glass-input p-2.5 rounded-xl text-sm">
+        </div>
+
+        <button type="submit" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 font-bold text-sm text-white transition">Record Settlement</button>
+      </form>
     </div>
   </div>
 
